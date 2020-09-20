@@ -12,7 +12,7 @@
 #include <avr/io.h>
 
 #define TEMP_SENSOR_PORT	PORTB
-#define TEMP_SENSOR_PIN		
+#define TEMP_SENSOR_PIN		PB3
 
 
 
