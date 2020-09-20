@@ -7,10 +7,24 @@
 
 #include <avr/io.h>
 
+#include "config.h"
+
+ISR(TIMER1_OVF_vect)
+{
+	
+}
+
+ISR(TIMER1_CAPT_vect)
+{
+		
+}
+
 
 int main(void)
 {
-    /* Replace with your application code */
+	TIMER_INIT;
+	
+	
     while (1) 
     {
     }
