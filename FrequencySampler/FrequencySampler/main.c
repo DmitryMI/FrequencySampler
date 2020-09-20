@@ -127,7 +127,7 @@ ISR(TIMER1_CAPT_vect)
 
 ISR(INT0_vect)
 {
-	cli();
+	//cli();
 
 	switch(state)
 	{
@@ -159,14 +159,12 @@ int main(void)
 	sei();
 		
     while (1) 
-    {
-		/*
+    {		
 		set_sleep_mode(SLEEP_MODE_IDLE);
 		sleep_enable();
 		sei();
 		sleep_cpu();
-		sleep_disable();	
-		*/
+		sleep_disable();			
     }
 }
 
