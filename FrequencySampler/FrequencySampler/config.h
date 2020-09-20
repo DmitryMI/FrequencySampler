@@ -47,11 +47,16 @@ Timer prescaler = 256
 #define _TIMER_COUNTER_ENABLE_OVF				TIMSK |= (1 << TOIE1);
 #define _TIMER_COUNTER_DISABLE_OVF				TIMSK &= ~(1 << TOIE1);
 
-#define _TIMER_GENERATOR_CTC					TCCR1B |= (1 << WGM12);
+#define _TIMER_CTC					TCCR1B |= (1 << WGM12);
+#define _TIMER_NORMAL						\
+	TCCR1B &= ~(1 << WGM13);				\
+	TCCR1B &= ~(1 << WGM12);				\
+	TCCR1A &= ~(1 << WGM11);				\
+	TCCR1A &= ~(1 << WGM10);
 
 #define _TIMER_GENERATOR_PIN_TOGGLE			\
-	TCCR1B &= ~(1 << COM1A1);				\
-	TCCR1B |= (1 << COM1A0);
+	TCCR1A &= ~(1 << COM1A1);				\
+	TCCR1A |= (1 << COM1A0);
 	
 #define _TIMER_GENERATOR_INT_ENABLE				TIMSK |= (1 << OCIE1A);
 #define _TIMER_GENERATOR_INT_DISABLE			TIMSK &= ~(1 << OCIE1A);
@@ -59,28 +64,38 @@ Timer prescaler = 256
 #define TIMER_COUNTER_INIT					\
 	_TIMER_COUNTER_FALLING;					\
 	_TIMER_COUNTER_NOISE_CANCELLER_ENABLE;	\
+	_TIMER_NORMAL;
 	
 #define TIMER_COUNTER_START					\
+	TCNT1 = 0;								\
 	_TIMER_INIT_PRESCALER;					\
 	_TIMER_COUNTER_ENABLE_INT;				\
-	_TIMER_COUNTER_ENABLE_OVF;
-	
+	_TIMER_COUNTER_ENABLE_OVF;				
+
 #define TIMER_COUNTER_STOP					\
 	_TIMER_PRESCALER_0;						\
 	_TIMER_COUNTER_DISABLE_INT;				\
 	_TIMER_COUNTER_DISABLE_OVF
-	
+
 #define TIMER_GENERATOR_INIT				\
-	_TIMER_GENERATOR_CTC;					\
+	_TIMER_CTC;					\
 	_TIMER_GENERATOR_PIN_TOGGLE;
 	
 #define TIMER_GENERATOR_START				\
+	TCNT1 = 0;								\
 	_TIMER_INIT_PRESCALER;					\
 	_TIMER_GENERATOR_INT_ENABLE;
 	
 #define TIMER_GENERATOR_STOP				\
 	_TIMER_PRESCALER_0;						\
 	_TIMER_GENERATOR_INT_DISABLE;
+	
+#define EXT_INT_ENABLE						\
+	MCUCR |= (1 << ISC01);					\
+	MCUCR &= ~(1 << ISC00);					\
+	GICR |= (1 << INT0);
+	
+#define EXT_INT_DISABLE		GICR &= ~(1 << INT0);
 
 #define CAPTURING_MAX_CLICKS 254
 typedef uint8_t capt_t;
