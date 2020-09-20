@@ -20,6 +20,7 @@ state_t state = IDLE;
 capt_t capture_click_counter = 0;
 uint32_t capture_time_counter = 0;
 
+#if DEBUG
 void blink_led2()
 {
 	DDRB |= (1 << PORTB2);
@@ -45,6 +46,8 @@ void blink_led3()
 		_delay_ms(500);
 	}
 }
+
+#endif
 
 void start_generation()
 {
@@ -127,8 +130,6 @@ ISR(TIMER1_CAPT_vect)
 
 ISR(INT0_vect)
 {
-	//cli();
-
 	switch(state)
 	{
 		// Should not occur while in IDLE or in CAPTURING
