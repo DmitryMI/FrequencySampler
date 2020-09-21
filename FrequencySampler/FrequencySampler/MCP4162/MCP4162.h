@@ -23,7 +23,7 @@ typedef enum mcp4162_ecode_t
 
 mcp4162_ecode_t mcp4162_init();
 mcp4162_ecode_t mcp4162_write_wiper(uint8_t val);
-mcp4162_ecode_t mcp4262_read_wiper(uint8_t *out_val);
+mcp4162_ecode_t mcp4162_read_wiper(uint8_t *out_val);
 
 
 #endif /* MCP4162_H_ */

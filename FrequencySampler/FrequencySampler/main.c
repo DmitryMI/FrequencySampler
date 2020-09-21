@@ -15,6 +15,7 @@
 #include "config.h"
 #include "common_types.h"
 #include "MCP4162/MCP4162.h"
+#include "ADC/adc.h"
 
 state_t state = IDLE;
 
@@ -38,6 +39,31 @@ void blink_led2()
 
 #endif
 
+uint8_t get_resistance(uint16_t timer1_time)
+{
+	/*
+		Время зажержки = (0.01146*(сопротивление потенциометра + сопротивлене резистора, который стоит на входе пина))+29.70
+		T = (0.01146*(Rp + Rr))+29.70
+		Rp = (T - b) / a - Rr
+		K = Rmax / ((T - b) / a - Rr) * 256
+		T = Timer / (F_CPU / TIMER_USED_PRESCALER)
+	*/
+	const double a = 0.01146;
+	const double b = 29.70;
+	double delay_time = (double)timer1_time / (F_CPU / TIMER_USED_PRESCALER);
+	double resistance = ((delay_time * 1000 - b) / a - RESISTOR_VALUE);
+	if (resistance < 0)
+	{
+		return 0;
+	}
+	if (resistance >= RHEOSTAT_MAX_VALUE)
+	{
+		return 0xFF;
+	}
+	uint8_t rheostat_coefficient = resistance / RHEOSTAT_MAX_VALUE * 255;
+	return rheostat_coefficient;
+}
+
 void start_generation()
 {
 	cli();
@@ -46,11 +72,18 @@ void start_generation()
 	
 	uint32_t average_time = capture_time_counter / capture_click_counter;
 	
+	uint16_t period = (uint16_t)average_time;
+	
+	uint8_t mcp4162_data = get_resistance(period);
+	mcp4162_write_wiper(mcp4162_data);
+	
 	TCNT1 = 0;
-	OCR1A = average_time / 2;
+	OCR1A = period / 2;
 	
 	TIMER_GENERATOR_INIT;
 	TIMER_GENERATOR_START;
+	
+	
 	state = GENERATING;
 	
 	EXT_INT_ENABLE;
@@ -133,12 +166,6 @@ ISR(INT0_vect)
 	}
 }
 
-ISR(TIMER1_COMPA_vect)
-{
-	int val = 128;
-	mcp4162_ecode_t error = mcp4162_write_wiper(val);
-}
-
 
 int main(void)
 {
@@ -148,6 +175,10 @@ int main(void)
 	
 	SPI_INIT;
 	mcp4162_init();
+	adc_init();
+	adc_set_free_running(1);
+	adc_set_left_adjust(1);
+	adc_start_conversion();
 	
 	TIMER_COUNTER_INIT;
 	TIMER_COUNTER_START;

@@ -84,7 +84,6 @@ Timer prescaler = 256
 #define TIMER_GENERATOR_START				\
 	TCNT1 = 0;								\
 	_TIMER_INIT_PRESCALER;					\
-	_TIMER_GENERATOR_INT_ENABLE;
 	
 #define TIMER_GENERATOR_STOP				\
 	_TIMER_PRESCALER_0;						\
@@ -100,6 +99,12 @@ Timer prescaler = 256
 #define SPI_INIT										\
 	DDRB |= ((1<<PORTB2)|(1<<PORTB3)|(1<<PORTB5));		\
 	SPCR = ((1<<SPE)|(1<<MSTR));
+	
+#define RESISTOR_VALUE			2700
+#define RHEOSTAT_MAX_VALUE		50000
+
+#define TIMER_USED_PRESCALER	64
+#define F_CPU					1000000
 
 #define CAPTURING_MAX_CLICKS 254
 typedef uint8_t capt_t;
