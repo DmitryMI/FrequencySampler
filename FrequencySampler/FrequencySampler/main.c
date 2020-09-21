@@ -14,6 +14,7 @@
 
 #include "config.h"
 #include "common_types.h"
+#include "MCP4162/MCP4162.h"
 
 state_t state = IDLE;
 
@@ -21,6 +22,7 @@ capt_t capture_click_counter = 0;
 uint32_t capture_time_counter = 0;
 
 #if DEBUG
+
 void blink_led2()
 {
 	DDRB |= (1 << PORTB2);
@@ -30,19 +32,6 @@ void blink_led2()
 		PORTB |= (1 << PORTB2);
 		_delay_ms(200);
 		PORTB &= ~(1 << PORTB2);
-		_delay_ms(500);
-	}
-}
-
-void blink_led3()
-{
-	DDRB |= (1 << PORTB3);
-	
-	for(int i = 0; i < 3; i++)
-	{
-		PORTB |= (1 << PORTB3);
-		_delay_ms(200);
-		PORTB &= ~(1 << PORTB3);
 		_delay_ms(500);
 	}
 }
@@ -67,6 +56,7 @@ void start_generation()
 	EXT_INT_ENABLE;
 	sei();	
 }
+
 
 void start_capturing()
 {
@@ -145,7 +135,8 @@ ISR(INT0_vect)
 
 ISR(TIMER1_COMPA_vect)
 {
-	// TODO: Send SPI data	
+	int val = 128;
+	mcp4162_ecode_t error = mcp4162_write_wiper(val);
 }
 
 
@@ -155,8 +146,12 @@ int main(void)
 	
 	DDRB |= (1 << PORTB1);	
 	
+	SPI_INIT;
+	mcp4162_init();
+	
 	TIMER_COUNTER_INIT;
 	TIMER_COUNTER_START;
+	
 	sei();
 		
     while (1) 

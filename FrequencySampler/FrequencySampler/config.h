@@ -97,6 +97,10 @@ Timer prescaler = 256
 	
 #define EXT_INT_DISABLE						GICR &= ~(1 << INT0);
 
+#define SPI_INIT										\
+	DDRB |= ((1<<PORTB2)|(1<<PORTB3)|(1<<PORTB5));		\
+	SPCR = ((1<<SPE)|(1<<MSTR));
+
 #define CAPTURING_MAX_CLICKS 254
 typedef uint8_t capt_t;
 	
