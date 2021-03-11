@@ -23,23 +23,6 @@ state_t state = IDLE;
 capt_t capture_click_counter = 0;
 uint32_t capture_time_counter = 0;
 
-#if DEBUG
-
-void blink_led2()
-{
-	DDRB |= (1 << PORTB2);
-	
-	for(int i = 0; i < 3; i++)
-	{
-		PORTB |= (1 << PORTB2);
-		_delay_ms(200);
-		PORTB &= ~(1 << PORTB2);
-		_delay_ms(500);
-	}
-}
-
-#endif
-
 uint8_t get_resistance(uint16_t timer1_time)
 {
 	/*
@@ -107,13 +90,22 @@ void start_capturing()
 	sei();
 }
 
-ISR(TIMER1_OVF_vect)
+void send_adc_value()
+{
+	uint16_t adc_value = adc_read();				// This is left-adjusted value
+	uint8_t potentiometer_value = adc_value >> 8;	// Shift it to use only Most Significant Bits
+	mcp4162_write_wiper(potentiometer_value);
+}
+
+ISR(TIMER_OVERFLOW_VECTOR)
 {
 	TCNT1 = 0;	
 	switch(state)
 	{
 		// Should not occur while in IDLE or GENERATING mode
 	case IDLE:
+		send_adc_value();
+		break;
 	case GENERATING:
 		break;
 		// If we were in CAPTURING mode, we must start GENERATING
@@ -129,9 +121,12 @@ ISR(TIMER1_CAPT_vect)
 
 	switch(state)
 	{
-		// If state is IDLE or GENERATING we need to enter CAPTURING mode
-		// and wait for next TIMER1_CAPT interrupt with capture value ignored
+		
+	// If state is IDLE, we read last ADC value and send it to Potentiometer
 	case IDLE:
+		// No break here, skip to GENERATING
+	// If state is GENERATING we need to enter CAPTURING mode
+	// and wait for next TIMER1_CAPT interrupt with capture value ignored
 	case GENERATING:		
 		start_capturing();
 		break;
@@ -152,15 +147,15 @@ ISR(TIMER1_CAPT_vect)
 	}
 }
 
-ISR(INT0_vect)
+ISR(EXT_INT_VECTOR)
 {
 	switch(state)
 	{
-		// Should not occur while in IDLE or in CAPTURING
-	case IDLE:
+	// Should not occur while in CAPTURING
 	case CAPTURING:		
 		break;
 		
+	case IDLE:
 	case GENERATING:	
 		start_capturing();
 		break;
@@ -171,10 +166,12 @@ ISR(INT0_vect)
 int main(void)
 {
 	state = IDLE;
+	EXT_INT_DISABLE;
 	
-	DDRB |= (1 << PB1);	
+	LED_DDR |= (1 << LED_PIN);
 	
-	spi_init();
+	spi_init();	
+	
 	mcp4162_init();
 	adc_init();
 	adc_set_free_running(1);

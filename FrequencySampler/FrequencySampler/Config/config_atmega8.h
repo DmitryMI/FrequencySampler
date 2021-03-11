@@ -18,6 +18,8 @@ Timer prescaler = 256
 
 #include <avr/io.h>
 
+#define TIMER_OVERFLOW_VECTOR TIMER1_OVF_vect
+
 #define _TIMER_PRESCALER_256	\
 	TCCR1B |= (1 << CS12);		\
 	TCCR1B &= ~(1 << CS11);		\
@@ -96,8 +98,7 @@ Timer prescaler = 256
 	
 #define EXT_INT_DISABLE						GICR &= ~(1 << INT0);
 
-#define RESISTOR_VALUE			2700
-#define RHEOSTAT_MAX_VALUE		50000
+#define EXT_INT_VECTOR INT0_vect
 
 #define TIMER_USED_PRESCALER	64
 

@@ -11,6 +11,9 @@
 
 #include <avr/io.h>
 
+#define TIMER_OVERFLOW_VECTOR TIM1_OVF_vect
+ 
+
 #define _TIMER_PRESCALER_256	\
 TCCR1B |= (1 << CS12);		\
 TCCR1B &= ~(1 << CS11);		\
@@ -114,44 +117,7 @@ GIMSK |= (1 << PCIE0);
 #define EXT_INT_DISABLE	\
 GIMSK &= ~(1 << PCIE0);
 
-/*
-SPITransfer:
-	out    USIDR,r16
-	ldi    r16,(1<<USIOIF)
-	out    USISR,r16
-	ldi    r17, (1<<USIWM0)|(1<<USICS1)|(1<<USICLK)|(1<<USITC)
-	
-SPITransfer_loop:
-	out    USICR,r17
-	in     r16, USISR
-	sbrs   r16, USIOIF			// Skip if Bit in Register is Se
-	rjmp   SPITransfer_loop
-	in     r16,USIDR
-	ret
-*/
-
-#define SPI_INIT											\
-DDRA |= (1 << PORTA5) | (1 << PORTA4);						\
-DDRA &= !(1 << PORTA6);										\
-USIDR |= (1 << USIOIF);										\
-
-#define SPI_DATA_REG	\
-USIDR
-
-#define SPI_CHECK_FLAG	\
-USISR & (1 << USIOIF)
-
-#define SPI_RW(b)		\
-	SPI_INIT			\
-	SPI_DATA_REG = b;	\
-	do					\
-	{					\
-		USICR |= (1<<USIWM0)|(1<<USICS1)|(1<<USICLK)|(1<<USITC);	\	
-	}while(!SPI_CHECK_FLAG)
-	
-
-#define RESISTOR_VALUE			2700
-#define RHEOSTAT_MAX_VALUE		50000
+#define EXT_INT_VECTOR PCINT0_vect
 
 #define TIMER_USED_PRESCALER	64
 

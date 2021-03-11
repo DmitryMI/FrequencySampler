@@ -11,9 +11,6 @@
 
 #include <avr/io.h>
 
-#define _ADC_PRESCALER_128 \
-	ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
-
 void adc_init();
 
 void adc_set_free_running(int enabled);
