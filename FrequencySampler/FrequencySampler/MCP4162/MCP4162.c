@@ -8,46 +8,7 @@
 #include "MCP4162.h"
 #include <stdlib.h>
 
-static inline void spi_cs(int enabled)
-{
-	if(enabled)
-	{	
-		SPI_CS_PORT &= ~(1 << SPI_CS_PIN);	// CS is low-level driven
-	}
-	else
-	{
-		SPI_CS_PORT |= (1 << SPI_CS_PIN);
-	}
-}
-
-static void spi_write(uint8_t *data, int length)
-{
-	for(int i = 0; i < length; i++)
-	{				
-		SPDR = data[i];	 
-		while(!(SPSR & (1<<SPIF)));
-	}
-}
-
-static void spi_read(uint8_t *buffer, int length)
-{
-	for(int i = 0; i < length; i++)
-	{		
-		SPDR = 0xFF;	 
-		while(!(SPSR & (1<<SPIF)));
-		buffer[i] = SPDR;
-	}
-}
-
-static void spi_rw(uint8_t* out_buffer, uint8_t* in_buffer, int length)
-{
-	for(int i = 0; i < length; i++)
-	{
-		SPDR = out_buffer[i];
-		while(!(SPSR & (1<<SPIF)));
-		in_buffer[i] = SPDR;				
-	}
-}
+#include "../SPI/spi.h"
 
 
 mcp4162_ecode_t mcp4162_init()

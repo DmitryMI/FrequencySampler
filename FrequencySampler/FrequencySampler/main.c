@@ -12,10 +12,11 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-#include "Config/config_attinyx4.h"
+#include "config.h"
 #include "common_types.h"
 #include "MCP4162/MCP4162.h"
 #include "ADC/adc.h"
+#include "SPI/spi.h"
 
 state_t state = IDLE;
 
@@ -171,9 +172,9 @@ int main(void)
 {
 	state = IDLE;
 	
-	DDRB |= (1 << PORTB1);	
+	DDRB |= (1 << PB1);	
 	
-	SPI_INIT;
+	spi_init();
 	mcp4162_init();
 	adc_init();
 	adc_set_free_running(1);
