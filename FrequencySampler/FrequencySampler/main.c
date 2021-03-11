@@ -18,35 +18,73 @@
 #include "ADC/adc.h"
 #include "SPI/spi.h"
 
+typedef double real_t;
+
 state_t state = IDLE;
 
 capt_t capture_click_counter = 0;
 uint32_t capture_time_counter = 0;
 
-uint8_t get_resistance(uint16_t timer1_time)
-{
-	/*
+/*
 		Время зажержки = (0.01146*(сопротивление потенциометра + сопротивлене резистора, который стоит на входе пина))+29.70
 		T = (0.01146*(Rp + Rr))+29.70
 		Rp = (T - b) / a - Rr
 		K = Rmax / ((T - b) / a - Rr) * 256
 		T = Timer / (F_CPU / TIMER_USED_PRESCALER)
 	*/
-	const double a = 0.01146;
-	const double b = 29.70;
-	double delay_time = (double)timer1_time / (F_CPU / TIMER_USED_PRESCALER);
-	double resistance = ((delay_time * 1000 - b) / a - RESISTOR_VALUE);
-	if (resistance < 0)
+
+#if USE_FLOAT_CALCULATIONS == 1
+	uint8_t get_resistance(uint16_t timer1_time)
 	{
-		return 0;
+		const real_t a = 0.01146;
+		const real_t b = 29.70;
+		real_t delay_time = (real_t)timer1_time / (F_CPU / TIMER_USED_PRESCALER);	
+		real_t resistance = (((real_t)delay_time * 1000 - b) / a - RESISTOR_VALUE);
+		if (resistance < 0)
+		{
+			return 0;
+		}
+		if (resistance >= RHEOSTAT_MAX_VALUE)
+		{
+			return 0xFF;
+		}
+		uint8_t rheostat_coefficient = resistance / RHEOSTAT_MAX_VALUE * 255;
+		return rheostat_coefficient;
+	
 	}
-	if (resistance >= RHEOSTAT_MAX_VALUE)
+#else
+	uint8_t get_resistance(uint16_t timer1_time)
 	{
-		return 0xFF;
+		const real_t a = (real_t)0.01146;
+		const uint16_t invA = (uint16_t)(1.0f / a); //~87
+		const real_t b = (real_t)29.70;
+		const uint16_t bDivA = (uint16_t)(b / a);
+
+		if (timer1_time < 476)
+		{
+			return 0;
+		}
+		if (timer1_time > 6359)
+		{
+			return 0xFF;
+		}
+
+		uint32_t timeSecInvA = (uint32_t)1000UL * timer1_time * invA;
+		uint32_t freqDivResult = timeSecInvA / (F_CPU / TIMER_USED_PRESCALER);
+		uint16_t resistance = (uint16_t)(freqDivResult - bDivA - RESISTOR_VALUE);
+		//uint16_t resistance = (uint16_t)(1000 * timer1_time * invA / (F_CPU / TIMER_USED_PRESCALER) - bDivA - RESISTOR_VALUE);
+
+		if (resistance >= RHEOSTAT_MAX_VALUE)
+		{
+			return 0xFF;
+		}
+
+		int resistanceUpper = 255 * resistance;
+
+		uint8_t rheostat_coefficient = (uint8_t)(resistanceUpper / RHEOSTAT_MAX_VALUE);
+		return rheostat_coefficient;
 	}
-	uint8_t rheostat_coefficient = resistance / RHEOSTAT_MAX_VALUE * 255;
-	return rheostat_coefficient;
-}
+#endif
 
 void start_generation()
 {

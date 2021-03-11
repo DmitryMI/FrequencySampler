@@ -39,5 +39,7 @@
 #define LED_DDR DDRB
 #define LED_PIN PB2
 
+#define USE_FLOAT_CALCULATIONS 0
+
 
 #endif /* CONFIG_H_ */
