@@ -59,14 +59,16 @@ void start_generation()
 	uint16_t period = (uint16_t)average_time;
 	
 	uint8_t mcp4162_data = get_resistance(period);
+		
+	spi_init(); // Since LED is attached to MOSI, it is better to reinit SPI
+	
 	mcp4162_write_wiper(mcp4162_data);
 	
 	TCNT1 = 0;
 	OCR1A = period / 2;
 	
 	TIMER_GENERATOR_INIT;
-	TIMER_GENERATOR_START;
-	
+	TIMER_GENERATOR_START;	
 	
 	state = GENERATING;
 	
@@ -77,9 +79,11 @@ void start_generation()
 
 void start_capturing()
 {
-	EXT_INT_DISABLE;
+	EXT_INT_DISABLE;	
 	
-	PORTB &= ~(1 << PORTB1);
+	// Force LED to be on
+	LED_PORT |= (1 << LED_PIN);
+	
 	capture_click_counter = 0;
 	capture_time_counter = 0;
 	TIMER_GENERATOR_STOP;
@@ -115,6 +119,7 @@ ISR(TIMER_OVERFLOW_VECTOR)
 	}
 }
 
+// Button press detection by Timer1 Capture Mode
 ISR(TIMER1_CAPT_vect)
 {	
 	TCNT1 = 0;
@@ -122,11 +127,9 @@ ISR(TIMER1_CAPT_vect)
 	switch(state)
 	{
 		
-	// If state is IDLE, we read last ADC value and send it to Potentiometer
-	case IDLE:
-		// No break here, skip to GENERATING
-	// If state is GENERATING we need to enter CAPTURING mode
+	// If state is IDLE or GENERATING we need to enter CAPTURING mode
 	// and wait for next TIMER1_CAPT interrupt with capture value ignored
+	case IDLE:	
 	case GENERATING:		
 		start_capturing();
 		break;
@@ -147,6 +150,7 @@ ISR(TIMER1_CAPT_vect)
 	}
 }
 
+// Button press detection by Pin Change Interrupt
 ISR(EXT_INT_VECTOR)
 {
 	switch(state)
