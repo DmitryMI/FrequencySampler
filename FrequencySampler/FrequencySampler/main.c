@@ -170,9 +170,6 @@ ISR(EXT_INT_VECTOR)
 int main(void)
 {
 	state = IDLE;
-	EXT_INT_DISABLE;
-	
-	LED_DDR |= (1 << LED_PIN);
 	
 	spi_init();	
 	
@@ -186,8 +183,6 @@ int main(void)
 	TIMER_COUNTER_START;
 	
 	_TIMER_PRESCALER_8;
-	
-	sei();
 		
     while (1) 
     {		
