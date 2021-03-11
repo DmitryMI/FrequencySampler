@@ -12,7 +12,7 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-#include "config.h"
+#include "Config/config_attinyx4.h"
 #include "common_types.h"
 #include "MCP4162/MCP4162.h"
 #include "ADC/adc.h"

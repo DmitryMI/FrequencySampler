@@ -13,8 +13,8 @@ Timer prescaler = 256
 */
 
 
-#ifndef CONFIG_H_
-#define CONFIG_H_
+#ifndef CONFIG_ATMEGA8_H_
+#define CONFIG_ATMEGA8_H_
 
 #include <avr/io.h>
 
@@ -112,4 +112,4 @@ typedef uint8_t capt_t;
 
 
 
-#endif /* CONFIG_H_ */
+#endif /* CONFIG_ATMEGA8_H_ */
