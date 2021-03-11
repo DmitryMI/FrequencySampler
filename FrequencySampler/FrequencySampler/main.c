@@ -181,6 +181,8 @@ int main(void)
 	TIMER_COUNTER_INIT;
 	TIMER_COUNTER_START;
 	
+	_TIMER_PRESCALER_8;
+	
 	sei();
 		
     while (1) 

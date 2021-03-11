@@ -24,6 +24,17 @@ TCCR1B &= ~(1 << CS12);		\
 TCCR1B |= (1 << CS11);		\
 TCCR1B |= (1 << CS10);
 
+#define _TIMER_PRESCALER_8		\
+TCCR1B &= ~(1 << CS12);		\
+TCCR1B |= (1 << CS11);		\
+TCCR1B &= ~(1 << CS10);
+
+#define _TIMER_PRESCALER_1		\
+TCCR1B &= ~(1 << CS12);		\
+TCCR1B &= ~(1 << CS11);		\
+TCCR1B |= (1 << CS10);
+
+
 #define _TIMER_PRESCALER_0		\
 TCCR1B &= ~(1 << CS12);		\
 TCCR1B &= ~(1 << CS11);		\
