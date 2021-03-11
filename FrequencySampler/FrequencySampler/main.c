@@ -92,8 +92,8 @@ void start_capturing()
 
 void send_adc_value()
 {
-	uint16_t adc_value = adc_read();				// This is left-adjusted value
-	uint8_t potentiometer_value = adc_value >> 8;	// Shift it to use only Most Significant Bits
+	//uint16_t adc_value = adc_read();				// This is left-adjusted value
+	uint8_t potentiometer_value = adc_read_high();	// Shift it to use only Most Significant Bits
 	mcp4162_write_wiper(potentiometer_value);
 }
 

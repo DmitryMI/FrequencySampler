@@ -33,10 +33,12 @@ void adc_init()
 	ADMUX &= (1 << REFS0);
 	
 	// Selecting ADC1 channel (PA1). MUX[5:0] = 000001
+	ADMUX &= ~(1 << MUX5);
+	ADMUX &= ~(1 << MUX4);
 	ADMUX &= ~(1 << MUX3);
 	ADMUX &= ~(1 << MUX2);
 	ADMUX &= ~(1 << MUX1);
-	ADMUX &= (1 << MUX0);
+	ADMUX |= (1 << MUX0);
 #else
 	#pragma message("ADC: Device not supported!")
 #endif	
