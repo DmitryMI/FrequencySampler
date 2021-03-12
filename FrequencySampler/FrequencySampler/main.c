@@ -17,8 +17,7 @@
 #include "MCP4162/MCP4162.h"
 #include "ADC/adc.h"
 #include "SPI/spi.h"
-
-typedef double real_t;
+#include "frequency_division_modes.h"
 
 state_t state = IDLE;
 
@@ -34,11 +33,13 @@ uint32_t capture_time_counter = 0;
 	*/
 
 #if USE_FLOAT_CALCULATIONS == 1
-	uint8_t get_resistance(uint16_t timer1_time)
+	uint8_t get_resistance(uint16_t timer1_time, int freq_div_mode)
 	{
 		const real_t a = 0.01146;
 		const real_t b = 29.70;
 		real_t delay_time = (real_t)timer1_time / (F_CPU / TIMER_USED_PRESCALER);	
+		delay_time *= frequency_modes[freq_div_mode].numerator;
+		delay_time /= frequency_modes[freq_div_mode].denominator;
 		real_t resistance = (((real_t)delay_time * 1000 - b) / a - RESISTOR_VALUE);
 		if (resistance < 0)
 		{
@@ -53,7 +54,7 @@ uint32_t capture_time_counter = 0;
 	
 	}
 #else
-	uint8_t get_resistance(uint16_t timer1_time)
+	uint8_t get_resistance(uint16_t timer1_time, int freq_div_mode)
 	{
 		const real_t a = (real_t)0.01146;
 		const uint16_t invA = (uint16_t)(1.0f / a); //~87
@@ -70,6 +71,8 @@ uint32_t capture_time_counter = 0;
 		}
 
 		uint32_t timeSecInvA = (uint32_t)1000UL * timer1_time * invA;
+		timeSecInvA *= frequency_modes[freq_div_mode].numerator;
+		timeSecInvA /= frequency_modes[freq_div_mode].denominator;
 		uint32_t freqDivResult = timeSecInvA / (F_CPU / TIMER_USED_PRESCALER);
 		uint16_t resistance = (uint16_t)(freqDivResult - bDivA - RESISTOR_VALUE);
 		//uint16_t resistance = (uint16_t)(1000 * timer1_time * invA / (F_CPU / TIMER_USED_PRESCALER) - bDivA - RESISTOR_VALUE);
@@ -96,7 +99,8 @@ void start_generation()
 	
 	uint16_t period = (uint16_t)average_time;
 	
-	uint8_t mcp4162_data = get_resistance(period);
+	// TODO Get Frequency Division Mode
+	uint8_t mcp4162_data = get_resistance(period, 0);
 		
 	spi_init(); // Since LED is attached to MOSI, it is better to reinit SPI
 	

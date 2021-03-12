@@ -5,10 +5,10 @@
  *  Author: DMITRYBIGPC
  */ 
 
-
 #ifndef COMMON_TYPES_H_
 #define COMMON_TYPES_H_
 
+typedef double real_t;
 
 typedef enum state_t 
 {
@@ -18,6 +18,12 @@ typedef enum state_t
 } state_t;
 
 typedef uint8_t capt_t;
+
+typedef struct
+{
+	uint8_t numerator;
+	uint8_t denominator;
+} frequency_divider_t;
 
 
 #endif /* COMMON_TYPES_H_ */

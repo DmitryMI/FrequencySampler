@@ -4,11 +4,8 @@
  * Created: 11.03.2021 18:40:11
  *  Author: DmitryBigPC
  */ 
-
-
 #ifndef CONFIG_H_
 #define CONFIG_H_
-
 
 #if defined (__AVR_ATmega8__)
 	#include "Config/config_atmega8.h"
@@ -18,6 +15,7 @@
 	#pragma message("Device not supported!")
 #endif
 
+#include "common_types.h"
 
 /*
 #define SPI_CS_PORT		PORTB
@@ -40,6 +38,5 @@
 #define LED_PIN PB2
 
 #define USE_FLOAT_CALCULATIONS 0
-
 
 #endif /* CONFIG_H_ */
