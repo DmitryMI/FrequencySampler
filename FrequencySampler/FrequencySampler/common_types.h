@@ -17,5 +17,7 @@ typedef enum state_t
 	GENERATING		// In this state MCU sends a wave with captured frequency via Timer1 CTC mode
 } state_t;
 
+typedef uint8_t capt_t;
+
 
 #endif /* COMMON_TYPES_H_ */

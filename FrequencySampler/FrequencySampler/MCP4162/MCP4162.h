@@ -11,9 +11,6 @@
 
 #include <avr/io.h>
 
-#define SPI_CS_PORT		PORTB
-#define SPI_CS_PIN		PORTB2
-
 typedef enum mcp4162_ecode_t
 {
 	MCP_OK,
