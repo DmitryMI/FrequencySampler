@@ -135,13 +135,22 @@ MCUCR |= (1 << ISC01);						\
 MCUCR &= ~(1 << ISC00);						\
 GICR |= (1 << INT0);
 */
-#define EXT_INT_ENABLE	\
-GIMSK |= (1 << PCIE0);	\
+#define BUTTON_INT_ENABLE	\
+GIMSK |= (1 << PCIE0);		\
 PCMSK0 |= (1 << PCINT7);
 
-#define EXT_INT_DISABLE	\
-GIMSK &= ~(1 << PCIE0);	\
+#define BUTTON_INT_DISABLE	\
 PCMSK0 &= ~(1 << PCINT7);
+
+#define ENABLE_PCINT_2		\
+GIMSK |= (1 << PCIE0);		\
+PCMSK0 |= (1 << PCINT2);
+
+#define ENABLE_PCINT_8_9_10		\
+GIMSK |= (1 << PCIE1);			\
+PCMSK1 |= (1 << PCINT8);		\
+PCMSK1 |= (1 << PCINT9);		\
+PCMSK1 |= (1 << PCINT10);		\
 
 #define EXT_INT_VECTOR PCINT0_vect
 

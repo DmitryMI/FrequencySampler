@@ -37,6 +37,32 @@
 #define LED_DDR DDRB
 #define LED_PIN PB2
 
-#define USE_FLOAT_CALCULATIONS 0
+
+#define MODE1_PORT	PORTA
+#define MODE2_PORT	PORTB
+#define MODE3_PORT	PORTB
+#define MODE4_PORT	PORTB
+
+#define MODE1_READ	PINA
+#define MODE2_READ	PINB
+#define MODE3_READ	PINB
+#define MODE4_READ	PINB
+
+#define MODE1_DDR	DDRA
+#define MODE2_DDR	DDRB
+#define MODE3_DDR	DDRB
+#define MODE4_DDR	DDRB
+
+#define MODE1_PIN	PA2
+#define MODE2_PIN	PB0
+#define MODE3_PIN	PB1
+#define MODE4_PIN	PB2
+
+#define BUTTON_PORT	PORTA
+#define BUTTON_READ	PINA
+#define BUTTON_PIN	PA7
+#define BUTTON_DDR	DDRA
+
+#define USE_FLOAT_CALCULATIONS 1
 
 #endif /* CONFIG_H_ */

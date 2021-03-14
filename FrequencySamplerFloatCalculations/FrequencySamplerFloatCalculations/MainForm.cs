@@ -40,7 +40,7 @@ namespace FrequencySamplerFloatCalculations
 			return rheostat_coefficient;
 		}
 
-        uint8_t get_resistance_int(uint16_t timer1_time)
+        uint8_t get_resistance(uint16_t timer1_time)
         {
             const real_t a = (real_t)0.01146;
             const uint16_t invA = (uint16_t)(1.0f / a); //~87
@@ -66,7 +66,7 @@ namespace FrequencySamplerFloatCalculations
                 return 0xFF;
             }
 
-            int resistanceUpper = 255 * resistance;
+            uint32_t resistanceUpper = (uint32_t)255 * resistance;
 
             uint8_t rheostat_coefficient = (uint8_t)(resistanceUpper / RHEOSTAT_MAX_VALUE);
             return rheostat_coefficient;
@@ -127,7 +127,7 @@ namespace FrequencySamplerFloatCalculations
 				uint8_t resultFloat = get_resistance_float((uint16_t)i);
                 _floatSeries.Points.Add(new DataPoint(i, resultFloat));
 
-                uint8_t resultInt = get_resistance_int((uint16_t)i);
+                uint8_t resultInt = get_resistance((uint16_t)i);
                 _intSeries.Points.Add(new DataPoint(i, resultInt));
             }
 

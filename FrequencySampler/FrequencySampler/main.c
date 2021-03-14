@@ -20,9 +20,10 @@
 #include "frequency_division_modes.h"
 
 state_t state = IDLE;
-
+int prev_button_state;
 capt_t capture_click_counter = 0;
 uint32_t capture_time_counter = 0;
+uint32_t average_time = 1;
 
 /*
 		Время зажержки = (0.01146*(сопротивление потенциометра + сопротивлене резистора, который стоит на входе пина))+29.70
@@ -78,51 +79,87 @@ uint32_t capture_time_counter = 0;
 			return 0xFF;
 		}
 
-		int resistanceUpper = 255 * resistance;
+		uint32_t resistanceUpper = (uint32_t)255 * resistance;
 
 		uint8_t rheostat_coefficient = (uint8_t)(resistanceUpper / RHEOSTAT_MAX_VALUE);
 		return rheostat_coefficient;
 	}
 #endif
 
-void start_generation()
+int get_freqdiv_mode()
 {
-	cli();
+	int mode = 0;
+	int mode1 = (MODE1_READ & (1 << MODE1_PIN)) == 0;
+	int mode2 = (MODE2_READ & (1 << MODE2_PIN)) == 0;
+	int mode3 = (MODE3_READ & (1 << MODE3_PIN)) == 0;
+	int mode4 = (MODE4_READ & (1 << MODE4_PIN)) == 0;
 	
-	TIMER_COUNTER_STOP;
+	if (mode1)
+	{
+		mode = 1;
+	}
+	else if(mode2)
+	{		
+		mode = 2;
+	}
+	else if(mode3)
+	{
+		mode = 3;
+	}
+	else if(mode4)
+	{
+		mode = 4;
+	}
 	
-	uint32_t average_time = capture_time_counter / capture_click_counter;
+	return mode;
+}
+
+
+void set_delay_period(uint32_t average_time_period)
+{
+	int mode = get_freqdiv_mode();
 	
+	frequency_divider_t freqdiv_mode = frequency_modes[mode];
 	
-	// TODO Get Frequency Division Mode
-	int frequency_division_mode = 0;
-	frequency_divider_t freqdiv_mode = frequency_modes[frequency_division_mode];	
-	
-	uint16_t period = (uint16_t)(average_time * freqdiv_mode.numerator / freqdiv_mode.denominator);
-	
+	average_time_period *= freqdiv_mode.numerator;
+	average_time_period /= freqdiv_mode.denominator;
+		
+	uint16_t period = (uint16_t)(average_time_period);
 	
 	uint8_t mcp4162_data = get_resistance(period);
-		
+	
 	spi_init(); // Since LED is attached to MOSI, it is better to reinit SPI
 	
 	mcp4162_write_wiper(mcp4162_data);
 	
 	TCNT1 = 0;
 	OCR1A = period / 2;
+}
+
+void start_generation()
+{
+	cli();
+	
+	TIMER_COUNTER_STOP;
+	TIMER_GENERATOR_STOP;
+	
+	average_time = capture_time_counter / capture_click_counter;
+	
+	set_delay_period(average_time);
 	
 	TIMER_GENERATOR_INIT;
 	TIMER_GENERATOR_START;	
 	
 	state = GENERATING;
 	
-	EXT_INT_ENABLE;
+	BUTTON_INT_ENABLE;
 	sei();	
 }
 
 
 void start_capturing()
 {
-	EXT_INT_DISABLE;	
+	BUTTON_INT_ENABLE;	
 	
 	// Force LED to be on
 	LED_PORT |= (1 << LED_PIN);
@@ -141,6 +178,12 @@ void send_adc_value()
 {
 	//uint16_t adc_value = adc_read();				// This is left-adjusted value
 	uint8_t potentiometer_value = adc_read_high();	// Shift it to use only Most Significant Bits
+	int mode = get_freqdiv_mode();
+	
+	frequency_divider_t divider = frequency_modes[mode];
+	potentiometer_value *= divider.numerator;
+	potentiometer_value /= divider.denominator;
+
 	mcp4162_write_wiper(potentiometer_value);
 }
 
@@ -196,17 +239,68 @@ ISR(TIMER1_CAPT_vect)
 // Button press detection by Pin Change Interrupt
 ISR(EXT_INT_VECTOR)
 {
-	switch(state)
+	int button_state = BUTTON_READ & (1 << BUTTON_PIN);
+	
+	if(button_state != prev_button_state)
 	{
-	// Should not occur while in CAPTURING
-	case CAPTURING:		
-		break;
-		
-	case IDLE:
-	case GENERATING:	
-		start_capturing();
-		break;
+		// Button was pressed
+		switch(state)
+		{
+			// Should not occur while in CAPTURING
+		case CAPTURING:
+			break;
+			
+		case IDLE:
+		case GENERATING:
+			start_capturing();
+			break;
+		}
+	}	
+	else if(state == GENERATING)
+	{
+		// Mode changed, restart generation
+		start_generation();
+	}		
+	
+	prev_button_state = button_state;	
+}
+
+ISR(PCINT1_vect)
+{
+	if(state == GENERATING)
+	{
+		// Mode changed, restart generation
+		start_generation();
 	}
+}
+
+void setup_gpio()
+{
+	// Set directions
+	LED_DDR		|= (1 << LED_PIN);	
+	MODE1_DDR	&= ~(1 << MODE1_PIN);	
+	MODE2_DDR	&= ~(1 << MODE2_PIN);	
+	MODE3_DDR	&= ~(1 << MODE3_PIN);	
+	MODE4_DDR	&= ~(1 << MODE4_PIN);		
+	BUTTON_DDR	&= ~(1 << BUTTON_PIN);
+	
+	// Set pull-ups
+	MODE1_PORT	|= (1 << MODE1_PIN);
+	MODE2_PORT	|= (1 << MODE2_PIN);
+	MODE3_PORT	|= (1 << MODE3_PIN);
+	MODE4_PORT	|= (1 << MODE4_PIN);
+	BUTTON_PORT |= (1 << BUTTON_PIN);
+	
+	// Clear PUD bit
+	MCUCR &= ~(1 << PUD);
+	
+	prev_button_state = BUTTON_PORT & (1 << BUTTON_PIN);
+}
+
+void setup_mode_pcints()
+{
+	ENABLE_PCINT_2;
+	ENABLE_PCINT_8_9_10;
 }
 
 
@@ -220,7 +314,9 @@ int main(void)
 	adc_init();
 	adc_set_free_running(1);
 	adc_set_left_adjust(1);
-	adc_start_conversion();
+	adc_start_conversion();	
+	setup_gpio();
+	setup_mode_pcints();
 	
 	TIMER_COUNTER_INIT;
 	TIMER_COUNTER_START;
