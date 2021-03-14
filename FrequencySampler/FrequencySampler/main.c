@@ -56,23 +56,22 @@ uint32_t average_time = 1;
 	uint8_t get_resistance(uint16_t timer1_time)
 	{
 		const real_t a = (real_t)0.01146;
-		const uint16_t invA = (uint16_t)(1.0f / a); //~87
+		const uint16_t invA = (uint16_t)(1.0f / a); // 87
 		const real_t b = (real_t)29.70;
-		const uint16_t bDivA = (uint16_t)(b / a);
+		const uint16_t bDivA = (uint16_t)(b / a);   // 2591
 
-		if (timer1_time < 476)
-		{
-			return 0;
-		}
-		if (timer1_time > 6359)
+		if(timer1_time > 4294967295 / 1000 / invA)
 		{
 			return 0xFF;
 		}
 
-		uint32_t timeSecInvA = (uint32_t)1000UL * timer1_time * invA;		
+		uint32_t timeSecInvA = (uint32_t)1000UL * timer1_time * invA;
 		uint32_t freqDivResult = timeSecInvA / (F_CPU / TIMER_USED_PRESCALER);
-		uint16_t resistance = (uint16_t)(freqDivResult - bDivA - RESISTOR_VALUE);
-		//uint16_t resistance = (uint16_t)(1000 * timer1_time * invA / (F_CPU / TIMER_USED_PRESCALER) - bDivA - RESISTOR_VALUE);
+		if (freqDivResult < bDivA + RESISTOR_VALUE)
+		{
+			return 0;
+		}
+		uint32_t resistance = (uint32_t)(freqDivResult - bDivA - RESISTOR_VALUE);
 
 		if (resistance >= RHEOSTAT_MAX_VALUE)
 		{
@@ -81,8 +80,12 @@ uint32_t average_time = 1;
 
 		uint32_t resistanceUpper = (uint32_t)255 * resistance;
 
-		uint8_t rheostat_coefficient = (uint8_t)(resistanceUpper / RHEOSTAT_MAX_VALUE);
-		return rheostat_coefficient;
+		uint32_t rheostat_coefficient = (uint32_t)(resistanceUpper / RHEOSTAT_MAX_VALUE);
+		if (rheostat_coefficient > 255)
+		{
+			return 0xFF;
+		}
+		return (uint8_t)rheostat_coefficient;
 	}
 #endif
 

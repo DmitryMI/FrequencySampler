@@ -63,6 +63,6 @@
 #define BUTTON_PIN	PA7
 #define BUTTON_DDR	DDRA
 
-#define USE_FLOAT_CALCULATIONS 1
+#define USE_FLOAT_CALCULATIONS 0
 
 #endif /* CONFIG_H_ */
