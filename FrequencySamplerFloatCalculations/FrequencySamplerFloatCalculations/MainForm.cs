@@ -45,9 +45,9 @@ namespace FrequencySamplerFloatCalculations
             const real_t a = (real_t)0.01146;
             const uint16_t invA = (uint16_t)(1.0f / a); // 87
             const real_t b = (real_t)29.70;
-            const uint16_t bDivA = (uint16_t)(b / a);   // 2591            
+            const uint16_t bDivA = (uint16_t)(b / a);   // 2591      
 
-            if(timer1_time > 4294967295 / 1000 / invA)
+            if (timer1_time > 4294967295 / 1000 / invA)
             {
                 return 0xFF;
             }
